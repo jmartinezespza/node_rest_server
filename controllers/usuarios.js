@@ -1,5 +1,9 @@
 
 const { response, request } = require('express');
+const bcryptjs = require('bcryptjs');
+
+const Usuario = require('../models/usuario');
+
 
 const usuarioGet = (  req = request, res = response ) => {
 
@@ -15,24 +19,41 @@ const usuarioGet = (  req = request, res = response ) => {
     });
 };
 
-const usuarioPost = ( req, res = response ) => {
+const usuarioPost = async ( req, res = response ) => {
 
-    const {nombre, edad} = req.body;
+    const {nombre, correo, password, rol} = req.body;
+    const usuario = new Usuario({nombre, correo, password, rol});
+
+    // Encriptar la contraseña
+    const salt = bcryptjs.genSaltSync();
+    usuario.password = bcryptjs.hashSync( password, salt )
+
+    // Guardar en la bd
+    await usuario.save();
 
     res.json({
         msg: 'Post api - controllador',
-        nombre,
-        edad
+        usuario
     });
 };
 
-const usuarioPut = ( req, res = response ) => {
+const usuarioPut = async ( req, res = response ) => {
 
     const { id } = req.params;
+    const { password, google, correo, ...resto } = req.body;
+
+    // Validar contra base de datos
+    if (password) {        
+        // Encriptar la contraseña
+        const salt = bcryptjs.genSaltSync();
+        resto.password = bcryptjs.hashSync( password, salt )
+    }
+
+    const usuario = await Usuario.findByIdAndUpdate(id, resto)
 
     res.json({
         msg: 'Put api controllador',
-        id
+        usuario
     });
 };
 
