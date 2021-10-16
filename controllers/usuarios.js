@@ -5,17 +5,27 @@ const bcryptjs = require('bcryptjs');
 const Usuario = require('../models/usuario');
 
 
-const usuarioGet = (  req = request, res = response ) => {
+const usuarioGet = async (  req = request, res = response ) => {
 
-    const { q, nombre = 'No name', apikey, page = 1, limit } = req.query;
+    const { limite = 5, desde = 0 } = req.query;
+    const query = {estado: true}
+
+    // const usuarios = await Usuario.find(query)
+    //     .skip(Number(desde))
+    //     .limit(Number(limite));
+
+    //const total = await Usuario.countDocuments(query);
+
+    const [ total, usuarios ] = await Promise.all([
+        Usuario.countDocuments(query),
+        Usuario.find(query)
+            .skip( Number( desde ) )
+            .limit( Number( limite ) )
+    ]);
 
     res.json({
-        msg: 'Get api controllador',
-        q,
-        nombre,
-        apikey,
-        page,
-        limit
+        total,
+        usuarios
     });
 };
 
@@ -51,10 +61,7 @@ const usuarioPut = async ( req, res = response ) => {
 
     const usuario = await Usuario.findByIdAndUpdate(id, resto)
 
-    res.json({
-        msg: 'Put api controllador',
-        usuario
-    });
+    res.json(usuario);
 };
 
 const usuarioPatch = ( req, res = response ) => {
@@ -64,11 +71,15 @@ const usuarioPatch = ( req, res = response ) => {
     });
 };
 
-const usuarioDelete = ( req, res = response ) => {
+const usuarioDelete = async( req, res = response ) => {
 
-    res.json({
-        msg: 'Delete api controllador',
-    });
+    const { id } = req.params;
+
+    // fisicamente lo borramos
+    // const usuario = await Usuario.findByIdAndDelete( id );
+    const usuario = await Usuario.findByIdAndUpdate( id, { estado: false } );
+
+    res.json(usuario);
 };
 
 
