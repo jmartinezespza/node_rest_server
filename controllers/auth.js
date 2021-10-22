@@ -76,7 +76,7 @@ const googleSignIn = async( req, res = response ) => {
             
             await usuario.save();
         }
-        console.log(nombre)
+        // console.log(nombre)
 
         // Si el usuario en DB
         if ( !usuario.estado ) {
